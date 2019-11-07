@@ -1,11 +1,15 @@
 package dao.json.impl.DAO;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dao.SzereploDAO;
+import filmespelda.exceptions.NoMatchingId;
 import filmespelda.model.Szereplo;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,11 +24,17 @@ public class DAOJSON implements SzereploDAO {
         if (!jsonFile.exists()){
             try {
                 jsonFile.createNewFile();
+                FileWriter writer = new FileWriter(jsonFile);
+                writer.write("[]");
+                writer.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        
         mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
     }
 
     public DAOJSON(String jsonFilePath) {
@@ -32,11 +42,16 @@ public class DAOJSON implements SzereploDAO {
         if(!jsonFile.exists()) {
             try {
                 jsonFile.createNewFile();
+                FileWriter writer = new FileWriter(jsonFile);
+                writer.write("[]");
+                writer.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
     }
 
 
@@ -68,7 +83,18 @@ public class DAOJSON implements SzereploDAO {
 
     }
 
+    @Override
     public Szereplo readSzereplo(UUID id) {
         return null;
+    }
+
+    public Szereplo readSzereploById(UUID id) throws NoMatchingId {
+        Collection<Szereplo> szereplok = readAllSzereplo();
+        for (Szereplo sz: szereplok){
+            if(sz.getId().toString().equalsIgnoreCase(id.toString())){
+                return sz;
+            }
+        }
+        throw new NoMatchingId();
     }
 }
